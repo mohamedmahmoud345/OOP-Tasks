@@ -1,3 +1,5 @@
+using Task_01.Classes.HelperMethods;
+
 namespace Task_01.Classes;
 
 public class Library
@@ -13,41 +15,41 @@ public class Library
     private Dictionary<string, Book> Books { get; }
     private HashSet<Member> Members { get; }
 
-    public (bool IsSuccess, string Message) AddBook(Book book)
+    public Result AddBook(Book book)
     {
         if (book is null)
             throw new ArgumentNullException(nameof(book));
         if (Books.ContainsKey(book.ISBN))
-            return (false, "The book is already in the library");
+            return Result.Failure("The book is already in the library");
 
         Books.Add(book.ISBN, book);
-        return (true, "Book added successfully");
+        return Result.Success("Book added successfully");
     }
-    public (bool IsSuccess, string Message) RegisterMember(Member member)
+    public Result RegisterMember(Member member)
     {
         if (member is null)
             throw new ArgumentNullException(nameof(member));
         Members.TryGetValue(member, out Member member1);
         if (member1 != null)
-            return (false, "Member is already registered");
+            return Result.Failure("Member is already registered");
 
         Members.Add(member);
-        return (true, "Member added successfully");
+        return Result.Success("Member added successfully");
     }
 
-    public (bool IsSuccess, string Message) BorrowByISBN(Member member, string isbn)
+    public Result BorrowByISBN(Member member, string isbn)
     {
         if (member is null)
             throw new ArgumentNullException(nameof(member));
 
         Members.TryGetValue(member, out Member member1);
         if (member1 is null)
-            return (false, "Member should register first");
+            return Result.Failure("Member should register first");
 
         if (Books.TryGetValue(isbn, out Book book))
         {
             if (!book.IsAvailable)
-                return (false, "The book isn't available");
+                return Result.Failure("The book isn't available");
 
             var borrowResult = member.BorrowBook(book);
             if (!borrowResult.IsSuccess)
@@ -56,19 +58,19 @@ public class Library
             book.Borrow();
         }
         else
-            return (false, "Book doesn't exist in library");
+            return Result.Failure("Book doesn't exist in library");
 
-        return (true, "Book borrowed successfully");
+        return Result.Success("Book borrowed successfully");
     }
 
-    public (bool IsSuccess, string Message) ReceiveBook(Member member, string isbn)
+    public Result ReceiveBook(Member member, string isbn)
     {
         if (member is null)
             throw new ArgumentNullException(nameof(member));
 
         Members.TryGetValue(member, out Member member1);
         if (member1 is null)
-            return (false, "Member should register first");
+            return Result.Failure("Member should register first");
 
         if (Books.TryGetValue(isbn, out Book book))
         {
@@ -79,17 +81,20 @@ public class Library
             book.ReturnBook();
         }
         else
-            return (false, "Book doesn't exist in library");
+            return Result.Failure("Book doesn't exist in library");
 
-        return (true, "Book returned successfully");
+        return Result.Success("Book returned successfully");
     }
 
     public void DisplayAvailableBooks()
     {
+
         var books = Books.Any() ?
-                string.Join(",\n", Books.Where(x => x.Value.IsAvailable).Select(x => x.Value.Title)) :
+                string.Join(",\n", Books.Where(x => x.Value.IsAvailable)
+                .Select(x => $"   {x.Value.Title} by {x.Value.Author} (ISBN: {x.Value.ISBN})")) :
                 "None";
 
-        Console.WriteLine(books);
+        System.Console.WriteLine($"Available books in {Name} Library: ");
+        Console.WriteLine("{\n" + books + "\n}");
     }
 }

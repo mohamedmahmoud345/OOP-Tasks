@@ -1,3 +1,5 @@
+using Task_01.Classes.HelperMethods;
+
 namespace Task_01.Classes;
 
 public class Member
@@ -25,27 +27,31 @@ public class Member
             $"   BorrowedBooks: {books}" +
         "}";
     }
-    public (bool IsSuccess, string Message) BorrowBook(Book book)
+    public Result BorrowBook(Book book)
     {
         if (book is null)
             throw new ArgumentNullException(nameof(book));
 
         if (BorrowedBooks.Contains(book))
-            return (false, $"The book with title {book.Title} is already borrowed and cannot be borrowed again");
+            return Result.Failure($"The book with title {book.Title} is already borrowed and cannot be borrowed again");
+        // return (false, );
+
+        if (BorrowedBooks.Count >= 3)
+            return Result.Failure("The maximum number of books you can borrow is 3");
 
         BorrowedBooks.Add(book);
-        return (true, "Book borrowed successfully");
+        return Result.Success("Book borrowed successfully");
     }
-    public (bool IsSuccess, string Message) ReturnBook(Book book)
+    public Result ReturnBook(Book book)
     {
         if (book is null)
             throw new ArgumentNullException(nameof(book));
 
         if (!BorrowedBooks.Contains(book))
-            return (false, $"The book with title {book.Title} was not borrowed, so it cannot be returned");
+            return Result.Failure($"The book with title {book.Title} was not borrowed, so it cannot be returned");
 
         BorrowedBooks.Remove(book);
-        return (true, "Book returned successfully");
+        return Result.Success("Book returned successfully");
     }
 
     public override bool Equals(object? obj)
